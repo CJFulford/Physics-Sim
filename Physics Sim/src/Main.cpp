@@ -7,6 +7,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <iostream>
 
+using namespace glm;
+
 
 double  mouse_old_x, 
         mouse_old_y;
@@ -22,6 +24,14 @@ glm::vec3   up(0.f, 1.f, 0.f),
             center(0.f, 0.f, 0.f);
 
 GLuint vertexArray, program;
+
+struct Weight
+{
+    vec3 position;
+    float weight;
+    std::vector<Weight> connections;
+};
+
 
 void errorCallback(int error, const char* description);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -39,10 +49,10 @@ void generateBuffer()
 
     std::vector<glm::vec3> verts;
 
-    verts.push_back(glm::vec3(-2.f, -0.1f, -2.f));
-    verts.push_back(glm::vec3(-2.f, -0.1f, 2.f));
-    verts.push_back(glm::vec3(2.f, -0.1f, -2.f));
-    verts.push_back(glm::vec3(2.f, -0.1f, 2.f));
+    verts.push_back(glm::vec3(-2.f, 1.f, -2.f));
+    verts.push_back(glm::vec3(-2.f, 1.f, 2.f));
+    verts.push_back(glm::vec3(2.f, 1.f, -2.f));
+    verts.push_back(glm::vec3(2.f, 1.f, 2.f));
 
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
