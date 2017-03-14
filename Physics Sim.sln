@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Physics Sim", "Physics Sim\Physics Sim.vcxproj", "{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Physics Sim", "Physics Sim\Physics Sim.vcxproj", "{15E586AB-CD09-46DA-87BC-69CAE251695E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Debug|x64.ActiveCfg = Debug|x64
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Debug|x64.Build.0 = Debug|x64
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Debug|x86.ActiveCfg = Debug|Win32
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Debug|x86.Build.0 = Debug|Win32
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Release|x64.ActiveCfg = Release|x64
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Release|x64.Build.0 = Release|x64
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Release|x86.ActiveCfg = Release|Win32
-		{C887E0BE-D1D3-493E-AA58-5FB2CA3368DF}.Release|x86.Build.0 = Release|Win32
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Debug|x64.ActiveCfg = Debug|x64
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Debug|x64.Build.0 = Debug|x64
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Debug|x86.ActiveCfg = Debug|Win32
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Debug|x86.Build.0 = Debug|Win32
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Release|x64.ActiveCfg = Release|x64
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Release|x64.Build.0 = Release|x64
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Release|x86.ActiveCfg = Release|Win32
+		{15E586AB-CD09-46DA-87BC-69CAE251695E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
