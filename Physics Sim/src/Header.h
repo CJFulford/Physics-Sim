@@ -21,3 +21,20 @@ const glm::mat4 identity(1.0f);
 const glm::vec3 defaultUp(0.f, 1.f, 0.f),
                 defaultCam(0.f, 0.5f, 2.f),
                 defaultCenter(0.f, 5.f, 0.f);
+
+struct Mass 
+{
+	Mass() : position(glm::vec3(0.f, 0.f, 0.f)), velocity(glm::vec3(0.f, 0.f, 0.f)), mass(1.f), fixed(false) { }
+	glm::vec3 position;
+	glm::vec3 velocity;
+	float mass;
+	bool fixed;
+};
+
+struct Spring
+{
+	Spring() :  restLength(0.f), constant(.5f) { }
+	Mass *m1, *m2;
+	float restLength;
+	float constant;
+};

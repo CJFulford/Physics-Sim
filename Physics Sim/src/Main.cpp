@@ -19,19 +19,20 @@ float   rotate_x = 0.0,
 
 const GLfloat clearColor[] = { 0.f, 0.f, 0.f };
 
-glm::vec3   up(0.f, 1.f, 0.f),
-            cam(0.f, 0.5f, 2.f),
-            center(0.f, 0.f, 0.f);
+vec3	up(0.f, 1.f, 0.f),
+		cam(0.f, 0.5f, 2.f),
+		center(0.f, 0.f, 0.f);
 
-GLuint vertexArray, program;
+GLuint	ceilingVertexArray, 
+		springVertexArray, 
+		massVertexArray, 
+	
+		ceilingProgram, 
+		springProgram, 
+		massProgram;
 
-struct Weight
-{
-    vec3 position;
-    float weight;
-    std::vector<Weight> connections;
-};
-
+std::vector<Mass> massList;
+std::vector<Spring> springList;
 
 void errorCallback(int error, const char* description);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -40,22 +41,22 @@ void window_size_callback(GLFWwindow* window, int width, int height);
 void mouse_motion(GLFWwindow* window, double x, double y);
 void printOpenGLVersion();
 
-void generateBuffer()
+void generateCeilingBuffer()
 {
-    GLuint vertexBuffer = 0;
+    GLuint ceilingVertexBuffer = 0;
 
-    glGenVertexArrays(1, &vertexArray);
-    glBindVertexArray(vertexArray);
+    glGenVertexArrays(1, &ceilingVertexArray);
+    glBindVertexArray(ceilingVertexArray);
 
-    std::vector<glm::vec3> verts;
+    std::vector<vec3> verts;
 
-    verts.push_back(glm::vec3(-2.f, 1.f, -2.f));
-    verts.push_back(glm::vec3(-2.f, 1.f, 2.f));
-    verts.push_back(glm::vec3(2.f, 1.f, -2.f));
-    verts.push_back(glm::vec3(2.f, 1.f, 2.f));
+    verts.push_back(vec3(-2.f, 3.f, -2.f));
+    verts.push_back(vec3(-2.f, 3.f, 2.f));
+    verts.push_back(vec3(2.f, 3.f, -2.f));
+    verts.push_back(vec3(2.f, 3.f, 2.f));
 
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glGenBuffers(1, &ceilingVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, ceilingVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
@@ -63,19 +64,56 @@ void generateBuffer()
     glBindVertexArray(0);
 }
 
+void generateSingleSpringSystem()
+{
+	//Masses
+	Mass fixed, weight;
+	fixed.position = vec3(0.f, 3.f, 0.f);
+	fixed.fixed = true;
+
+	massList.push_back(fixed);
+	massList.push_back(weight);
+
+	// Springs
+	Spring spring;
+	spring.m1 = &fixed;
+	spring.m2 = &weight;
+
+	springList.push_back(spring);
+
+
+
+	GLuint massVertexBuffer = 0, springVertexBuffer = 0;
+
+	glGenVertexArrays(1, &ceilingVertexArray);
+	glBindVertexArray(ceilingVertexArray);
+
+	glGenBuffers(1, &ceilingVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, ceilingVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
+
+
+}
+
 void generateShaders()
 {
-    program = generateProgram("shaders/general.vert",
-                              "shaders/general.frag");
+	ceilingProgram = generateProgram(	"shaders/general.vert",
+										"shaders/general.frag");
+	springProgram = generateProgram(	"shaders/general.vert",
+										"shaders/general.frag");
+	massProgram = generateProgram(		"shaders/general.vert",
+										"shaders/general.frag");
 }
 
 void passBasicUniforms(GLuint program)
 {
-    glm::mat4   modelview = glm::lookAt(cam * zoom, center, up),
-        projection = glm::perspective(45.0f, aspectRatio, 0.01f, 100.0f);
+    mat4   modelview = lookAt(cam * zoom, center, up),
+        projection = perspective(45.0f, aspectRatio, 0.01f, 100.0f);
 
-    glm::mat4   rotationX = rotate(identity , rotate_x  * PI / 180.0f, glm::vec3(1.f, 0.f, 0.f)),
-                rotationY = rotate(rotationX, rotate_y  * PI / 180.0f, glm::vec3(0.f, 1.f, 0.f));
+    mat4   rotationX = rotate(identity , rotate_x  * PI / 180.0f, vec3(1.f, 0.f, 0.f)),
+                rotationY = rotate(rotationX, rotate_y  * PI / 180.0f, vec3(0.f, 1.f, 0.f));
 
     modelview *= rotationY;
 
@@ -83,9 +121,9 @@ void passBasicUniforms(GLuint program)
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, value_ptr(projection));
 }
 
-void render(GLuint program)
+void renderCeiling(GLuint program)
 {
-    glBindVertexArray(vertexArray);
+    glBindVertexArray(ceilingVertexArray);
     glUseProgram(program);
 
     passBasicUniforms(program);
@@ -93,6 +131,30 @@ void render(GLuint program)
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glBindVertexArray(0);
+}
+
+void renderSprings(GLuint program)
+{
+	glBindVertexArray(ceilingVertexArray);
+	glUseProgram(program);
+
+	passBasicUniforms(program);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindVertexArray(0);
+}
+
+void renderMasses(GLuint program)
+{
+	glBindVertexArray(ceilingVertexArray);
+	glUseProgram(program);
+
+	passBasicUniforms(program);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindVertexArray(0);
 }
 
 int main()
@@ -128,7 +190,7 @@ int main()
 	printOpenGLVersion();
 
     generateShaders();
-    generateBuffer();
+    generateCeilingBuffer();
 
     glfwSwapInterval(1);
 
@@ -139,7 +201,10 @@ int main()
         glClearBufferfv(GL_COLOR, 0, clearColor);
 
 
-        render(program);
+        renderCeiling(ceilingProgram);
+		renderSprings(springProgram);
+		renderMasses(massProgram);
+		
 
         glDisable(GL_DEPTH_TEST);
 		glfwSwapBuffers(window);
