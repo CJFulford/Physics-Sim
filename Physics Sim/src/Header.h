@@ -34,7 +34,7 @@ struct Mass
 struct Spring
 {
 	Spring() :  restLength(0.f), constant(.5f) { }
-	Mass *m1, *m2;
+	Mass m1, m2;
 	float restLength;
 	float constant;
 };

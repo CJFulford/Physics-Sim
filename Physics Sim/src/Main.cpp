@@ -31,8 +31,8 @@ GLuint	ceilingVertexArray,
 		springProgram, 
 		massProgram;
 
-std::vector<Mass> massList;
-std::vector<Spring> springList;
+std::vector<Mass> massVec;
+std::vector<Spring> springVec;
 
 void errorCallback(int error, const char* description);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -64,6 +64,48 @@ void generateCeilingBuffer()
     glBindVertexArray(0);
 }
 
+void generateMassSpringBuffer()
+{
+	GLuint massVertexBuffer = 0;
+
+	glGenVertexArrays(1, &massVertexArray);
+	glBindVertexArray(massVertexArray);
+
+	std::vector<vec3> masses;
+
+	for (int i = 0; i < massVec.size(); i++)
+		masses.push_back(massVec[i].position);
+
+	glGenBuffers(1, &massVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, massVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(masses[0]) * masses.size(), &masses[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
+
+	
+	
+	
+	
+	GLuint springVertexBuffer = 0;
+
+	glGenVertexArrays(1, &springVertexArray);
+	glBindVertexArray(springVertexArray);
+
+	std::vector<vec3> springs;
+
+	for (int i = 0; i < springVec.size(); i++)
+	{
+		springs.push_back(springVec[i].m1.position);
+		springs.push_back(springVec[i].m2.position);
+	}
+
+	glGenBuffers(1, &springVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, springVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(springs[0]) * springs.size(), &springs[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
+}
+
 void generateSingleSpringSystem()
 {
 	//Masses
@@ -71,30 +113,16 @@ void generateSingleSpringSystem()
 	fixed.position = vec3(0.f, 3.f, 0.f);
 	fixed.fixed = true;
 
-	massList.push_back(fixed);
-	massList.push_back(weight);
+	massVec.push_back(fixed);
+	massVec.push_back(weight);
+	
 
 	// Springs
 	Spring spring;
-	spring.m1 = &fixed;
-	spring.m2 = &weight;
+	spring.m1 = fixed;
+	spring.m2 = weight;
 
-	springList.push_back(spring);
-
-
-
-	GLuint massVertexBuffer = 0, springVertexBuffer = 0;
-
-	glGenVertexArrays(1, &ceilingVertexArray);
-	glBindVertexArray(ceilingVertexArray);
-
-	glGenBuffers(1, &ceilingVertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, ceilingVertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-
-
+	springVec.push_back(spring);
 }
 
 void generateShaders()
@@ -102,9 +130,9 @@ void generateShaders()
 	ceilingProgram = generateProgram(	"shaders/general.vert",
 										"shaders/general.frag");
 	springProgram = generateProgram(	"shaders/general.vert",
-										"shaders/general.frag");
+										"shaders/springs.frag");
 	massProgram = generateProgram(		"shaders/general.vert",
-										"shaders/general.frag");
+										"shaders/masses.frag");
 }
 
 void passBasicUniforms(GLuint program)
@@ -135,24 +163,26 @@ void renderCeiling(GLuint program)
 
 void renderSprings(GLuint program)
 {
-	glBindVertexArray(ceilingVertexArray);
+	glBindVertexArray(springVertexArray);
 	glUseProgram(program);
 
 	passBasicUniforms(program);
-
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	
+	glLineWidth(2);
+	glDrawArrays(GL_LINES, 0, 2 * springVec.size());
 
 	glBindVertexArray(0);
 }
 
 void renderMasses(GLuint program)
 {
-	glBindVertexArray(ceilingVertexArray);
+	glBindVertexArray(massVertexArray);
 	glUseProgram(program);
 
 	passBasicUniforms(program);
 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glPointSize(15);
+	glDrawArrays(GL_POINTS, 0, massVec.size());
 
 	glBindVertexArray(0);
 }
@@ -191,6 +221,9 @@ int main()
 
     generateShaders();
     generateCeilingBuffer();
+
+	generateSingleSpringSystem();
+	generateMassSpringBuffer();
 
     glfwSwapInterval(1);
 

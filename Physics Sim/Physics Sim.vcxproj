@@ -161,6 +161,8 @@
   <ItemGroup>
     <None Include="shaders\general.frag" />
     <None Include="shaders\general.vert" />
+    <None Include="shaders\masses.frag" />
+    <None Include="shaders\springs.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

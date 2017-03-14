@@ -49,5 +49,11 @@
     <None Include="shaders\general.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="shaders\masses.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\springs.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
