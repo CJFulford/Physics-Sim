@@ -2,6 +2,8 @@
 
 #include "Tools.h"
 
+#include <glad\glad.h>
+#include <GLFW\glfw3.h>
 #include <glm\glm.hpp>
 #include <vector>
 
@@ -38,3 +40,13 @@ struct Spring
 	float restLength;
 	float constant;
 };
+
+void generateShaders();
+
+void passBasicUniforms(GLuint program);
+void errorCallback(int error, const char* description);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void window_size_callback(GLFWwindow* window, int width, int height);
+void mouse_motion(GLFWwindow* window, double x, double y);
+void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
