@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "Tools.h"
 
 #include <glad\glad.h>
@@ -18,25 +19,36 @@
 #define WINDOW_WIDTH 700
 #define WINDOW_HEIGHT 500
 
+// if timestep = 1, 60 steps/second
+// 20 = 1200 steps/second
+#define timeStep 20.f
+
 const glm::mat4 identity(1.0f);
 
 const glm::vec3 defaultUp(0.f, 1.f, 0.f),
                 defaultCam(0.f, 0.5f, 2.f),
                 defaultCenter(0.f, 5.f, 0.f);
 
+
+// 0 = single spring system
+// 1 = multi spring system
+extern int state;
+extern bool stateChange;
+
 struct Mass 
 {
-	Mass() : position(glm::vec3(0.f, 0.f, 0.f)), velocity(glm::vec3(0.f, 0.f, 0.f)), mass(1.f), fixed(false) { }
+	Mass() : position(glm::vec3(0.f, 0.f, 0.f)), velocity(glm::vec3(0.f, 0.f, 0.f)), mass(1.f), fixed(false), force(glm::vec3(0.f, 0.f, 0.f)) { }
 	glm::vec3 position;
 	glm::vec3 velocity;
+	glm::vec3 force;
 	float mass;
 	bool fixed;
 };
 
 struct Spring
 {
-	Spring() :  restLength(0.f), constant(.5f) { }
-	Mass m1, m2;
+	Spring() :  restLength(.4f), constant(50.f){ }
+	unsigned int m1, m2;
 	float restLength;
 	float constant;
 };
@@ -50,3 +62,5 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void window_size_callback(GLFWwindow* window, int width, int height);
 void mouse_motion(GLFWwindow* window, double x, double y);
 void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
+
+void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs);

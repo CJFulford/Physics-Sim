@@ -39,10 +39,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		switch (key)
 		{
-		case(GLFW_KEY_N):
+		case (GLFW_KEY_N):
 			std::cout << "Recompiling Shaders... ";
 			generateShaders();
 			std::cout << "Done" << std::endl;
+			break;
+		case (GLFW_KEY_1):
+			state = 0;
+			stateChange = true;
+			break;
+		case (GLFW_KEY_2):
+			state = 1;
+			stateChange = true;
 			break;
 		default:
 			break;

@@ -6,6 +6,9 @@ using namespace glm;
 
 const GLfloat clearColor[] = { 0.f, 0.f, 0.f };
 
+int state = 0;
+bool stateChange = false;
+
 GLuint	ceilingVertexArray, 
 		springVertexArray, 
 		massVertexArray, 
@@ -42,6 +45,7 @@ void generateCeilingBuffer()
 
 void generateMassBuffer()
 {
+
 	GLuint massVertexBuffer = 0;
 
 	glGenVertexArrays(1, &massVertexArray);
@@ -59,6 +63,8 @@ void generateMassBuffer()
 	glEnableVertexAttribArray(0);
 }
 
+
+
 void generateSpringBuffer()
 {
 	GLuint springVertexBuffer = 0;
@@ -70,8 +76,8 @@ void generateSpringBuffer()
 
 	for (unsigned int i = 0; i < springVec.size(); i++)
 	{
-		springs.push_back(springVec[i].m1.position);
-		springs.push_back(springVec[i].m2.position);
+		springs.push_back(massVec[springVec[i].m1].position);
+		springs.push_back(massVec[springVec[i].m2].position);
 	}
 
 	glGenBuffers(1, &springVertexBuffer);
@@ -86,23 +92,47 @@ void generateSpringBuffer()
 void generateSingleSpringSystem()
 {
 	//Masses
-	Mass fixed, weight;
+	Mass fixed;
+	Mass weight;
 	fixed.position = vec3(0.f, 3.f, 0.f);
 	fixed.fixed = true;
 
+	weight.position = vec3(0.f, 2.2f, 0.f);
+
 	massVec.push_back(fixed);
 	massVec.push_back(weight);
-	
 
-	// Springs
 	Spring spring;
-	spring.m1 = fixed;
-	spring.m2 = weight;
+	spring.m1 = 0;	// massVec index of fixed
+	spring.m2 = 1;	// massVec index of weight
+	spring.constant = 50;
+	spring.restLength = 2;
 
 	springVec.push_back(spring);
 }
 
+void generateMultiSpringSystem(int numOfMasses)
+{
+	// always need the single fixed point at the top
+	Mass fixed;
+	fixed.position = vec3(0.f, 3.f, 0.f);
+	fixed.fixed = true;
+	massVec.push_back(fixed);
 
+
+	for (unsigned int i = 0; i < numOfMasses; i++)
+	{
+		Mass m;
+		m.position = massVec[i].position - glm::vec3(0.f, 0.7f, 0.f);
+		m.mass = 2.f * (i + 1);
+		massVec.push_back(m);
+
+		Spring s;
+		s.m1 = i;
+		s.m2 = i + 1;
+		springVec.push_back(s);
+	}
+}
 
 void generateShaders()
 {
@@ -113,6 +143,8 @@ void generateShaders()
 	massProgram = generateProgram(		"shaders/general.vert",
 										"shaders/masses.frag");
 }
+
+
 
 void renderCeiling(GLuint program)
 {
@@ -165,7 +197,7 @@ int main()
 	glfwSetErrorCallback(errorCallback);
 
 	glfwWindowHint(GLFW_DOUBLEBUFFER, true);
-	glfwWindowHint(GLFW_SAMPLES, 32);
+	glfwWindowHint(GLFW_SAMPLES, 16);
 
 	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Physics Sim", NULL, NULL);
 
@@ -185,7 +217,7 @@ int main()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	printOpenGLVersion(GLM_VERSION_MAJOR, GLM_VERSION_MINOR, GL_SHADING_LANGUAGE_VERSION);
+	printOpenGLVersion(GL_MAJOR_VERSION, GL_MINOR_VERSION, GL_SHADING_LANGUAGE_VERSION);
 
     generateShaders();
     generateCeilingBuffer();
@@ -212,6 +244,35 @@ int main()
         glDisable(GL_DEPTH_TEST);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		
+		if (stateChange)
+		{
+			massVec.clear();
+			springVec.clear();
+			switch (state)
+			{
+				case (0):
+					generateSingleSpringSystem();
+					break;
+				case(1):
+					generateMultiSpringSystem(2);
+					break;
+				default:
+					generateSingleSpringSystem();
+					break;
+			}
+			stateChange = false;
+		}
+		else
+		{
+			// already moving at 60 steps/second
+			for (int i = 0; i < timeStep; i++)
+				springSystem(massVec, springVec);
+		}
+
+
+		generateMassBuffer();
+		generateSpringBuffer();
 	}
 
 
