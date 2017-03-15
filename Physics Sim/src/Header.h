@@ -22,7 +22,7 @@
 // if timestep = 1, 60 steps/second
 // 20 = 1200 steps/second
 #define timeStep 20.f
-
+#define stepsPerSecond (timeStep * 60.f)
 const glm::mat4 identity(1.0f);
 
 const glm::vec3 defaultUp(0.f, 1.f, 0.f),

@@ -32,8 +32,8 @@ void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs)
 			// convert to acceleration
 			m->force /= m->mass;
 
-			m->velocity += m->force * (1.f / (timeStep * 60.f));
-			m->position += m->velocity * (1.f / (timeStep * 60.f));
+			m->velocity += m->force * (1.f / stepsPerSecond);
+			m->position += m->velocity * (1.f / stepsPerSecond);
 			m->force = vec3(0.f, 0.f, 0.f);
 		}
 	}

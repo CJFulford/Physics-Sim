@@ -120,7 +120,7 @@ void generateMultiSpringSystem(int numOfMasses)
 	massVec.push_back(fixed);
 
 
-	for (unsigned int i = 0; i < numOfMasses; i++)
+	for (int i = 0; i < numOfMasses; i++)
 	{
 		Mass m;
 		m.position = massVec[i].position - glm::vec3(0.f, 0.7f, 0.f);
