@@ -1,6 +1,7 @@
 #include "Header.h"
 #include "ShaderBuilder.h"
 #include <iostream>
+#include <string>
 
 using namespace glm;
 
@@ -63,8 +64,6 @@ void generateMassBuffer()
 	glEnableVertexAttribArray(0);
 }
 
-
-
 void generateSpringBuffer()
 {
 	GLuint springVertexBuffer = 0;
@@ -87,7 +86,27 @@ void generateSpringBuffer()
 	glEnableVertexAttribArray(0);
 }
 
-
+int userInput(std::string str)
+{
+	// get user input, restricted to integers
+	while (true);
+	{
+		std::cout << str;
+		std::string input;
+		std::cin >> input;
+		bool digit = true;
+		for (int i = 0; i < input.length(); i++)
+		{
+			if (!isdigit(input[i]))
+			{
+				std::cout << "Need to enter an integer amount" << std::endl;
+				digit = false;
+				i = input.length();
+			}
+		}
+		if (digit) return stoi(input);
+	}
+}
 
 void generateSingleSpringSystem()
 {
@@ -97,7 +116,7 @@ void generateSingleSpringSystem()
 	fixed.position = vec3(0.f, 3.f, 0.f);
 	fixed.fixed = true;
 
-	weight.position = vec3(0.f, 2.2f, 0.f);
+	weight.position = vec3(0.2f, 2.2f, 0.f);
 
 	massVec.push_back(fixed);
 	massVec.push_back(weight);
@@ -111,8 +130,10 @@ void generateSingleSpringSystem()
 	springVec.push_back(spring);
 }
 
-void generateMultiSpringSystem(int numOfMasses)
+void generateMultiSpringSystem()
 {
+	int numOfMasses = userInput("Enter number of masses on spring chain: ");
+
 	// always need the single fixed point at the top
 	Mass fixed;
 	fixed.position = vec3(0.f, 3.f, 0.f);
@@ -133,6 +154,30 @@ void generateMultiSpringSystem(int numOfMasses)
 		springVec.push_back(s);
 	}
 }
+
+void generateCubeSpringSystem()
+{
+	int numOfLayers = userInput("Enter number of cube layers: ");
+	float layerThickness = .2f, massDistance = .1f;
+
+	// generate the number of desired masses
+	for (float layer = 0; layer < numOfLayers; layer += layerThickness)
+	{
+		for (int side = 0; side < 4; side++)
+		{
+			for (float height = 0; height < layer; height += .1f)
+			{
+				for (float width = 0; width < layer; width += .1f)
+				{
+
+				}
+			}
+		}
+	}
+}
+
+
+
 
 void generateShaders()
 {
@@ -255,7 +300,7 @@ int main()
 					generateSingleSpringSystem();
 					break;
 				case(1):
-					generateMultiSpringSystem(2);
+					generateMultiSpringSystem();
 					break;
 				default:
 					generateSingleSpringSystem();

@@ -19,6 +19,8 @@
 #define WINDOW_WIDTH 700
 #define WINDOW_HEIGHT 500
 
+#define dampening 1.f	// this is good with a default mass of 1
+
 // if timestep = 1, 60 steps/second
 // 20 = 1200 steps/second
 #define timeStep 20.f

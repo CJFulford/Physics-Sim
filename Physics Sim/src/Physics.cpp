@@ -29,6 +29,7 @@ void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs)
 		{
 			m->force.y -= gravity * m->mass;
 
+			m->force = (-dampening * m->velocity) + m->force;
 			// convert to acceleration
 			m->force /= m->mass;
 
