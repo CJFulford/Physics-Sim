@@ -8,9 +8,11 @@ using namespace glm;
 
 const GLfloat clearColor[] = { 0.f, 0.f, 0.f };
 
-int state = 0;
-bool stateChange = false, simulation = true;
-float planeHeight = 3.f;
+int		state = 0;
+bool	stateChange = false, 
+		simulation = true;
+float	planeHeight = 2.f,
+		planeSize = 2.f;
 
 GLuint	springVertexArray, 
 		massVertexArray, 
@@ -94,10 +96,10 @@ void generateSingleSpringSystem()
 	//Masses
 	Mass fixed;
 	Mass weight;
-	fixed.position = vec3(0.f, 3.f, 0.f);
+	fixed.position = vec3(0.f, planeHeight, 0.f);
 	fixed.fixed = true;
 
-	weight.position = vec3(0.2f, 2.2f, 0.f);
+	weight.position = vec3(0.2f, planeHeight - 1.f, 0.f);
 
 	massVec.push_back(fixed);
 	massVec.push_back(weight);
@@ -117,7 +119,7 @@ void generateMultiSpringSystem()
 
 	// always need the single fixed point at the top
 	Mass fixed;
-	fixed.position = vec3(0.f, 3.f, 0.f);
+	fixed.position = vec3(0.f, planeHeight, 0.f);
 	fixed.fixed = true;
 	massVec.push_back(fixed);
 
@@ -169,9 +171,62 @@ void generateCubeSpringSystem()
 	int springLayers = 2;
 	float springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f));
 
-	for (int i = 0; i < massVec.size(); i++)
+	for (unsigned int i = 0; i < massVec.size(); i++)
 	{
-		for (int j = i + 1; j < massVec.size(); j++)
+		for (unsigned int j = i + 1; j < massVec.size(); j++)
+		{
+			float dist = distance(massVec[i].position, massVec[j].position);
+			if (dist < springDistance)
+			{
+				Spring s;
+				s.m1 = i;
+				s.m2 = j;
+				s.restLength = dist;
+				s.constant = 2000.f;
+				springVec.push_back(s);
+			}
+		}
+	}
+}
+
+void generateClothSpringSystem()
+{
+	int numOfLayers = userInput("Enter diameter of cloth: "),
+		springLayers = 2,
+		top = numOfLayers / 2,
+		bottom = -top;
+	float	massDistance = .005f,
+			// equation of a sphere. all masses contained need to be connected to center mass
+			// + .01f for floating point error
+			springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f));
+			
+
+
+
+	// generate the network of masses
+	float x = bottom * massDistance;
+	for (float xLayer = 0; xLayer < numOfLayers; xLayer++)
+	{
+		float	y = bottom * massDistance,
+				z = bottom * massDistance;
+		for (int yLayer = 0; yLayer < numOfLayers; yLayer++)
+		{
+			Mass m;
+			m.position = glm::vec3(x, y, z);
+			m.mass = .1f;
+			massVec.push_back(m);
+
+			y += massDistance;
+			z += massDistance;
+		}
+		x += massDistance;
+	}
+
+
+	// generate the spring network
+	for (unsigned int i = 0; i < massVec.size(); i++)
+	{
+		for (unsigned int j = i + 1; j < massVec.size(); j++)
 		{
 			float dist = distance(massVec[i].position, massVec[j].position);
 			if (dist < springDistance)
@@ -200,12 +255,13 @@ void generateShaders()
 									"shaders/masses.frag");
 }
 
-void renderCeiling(GLuint program)
+void renderPlane(GLuint program)
 {
     glUseProgram(program);
 
     passBasicUniforms(program);
 	glUniform1f(glGetUniformLocation(program, "height"), planeHeight);
+	glUniform1f(glGetUniformLocation(program, "planeSize"), planeSize);
 
 
     glDrawArrays(GL_POINTS, 0, 1);
@@ -231,12 +287,11 @@ void renderMasses(GLuint program)
 
 	passBasicUniforms(program);
 
-	glPointSize((state == 0 || state == 1) ? 15 : 10);
+	glPointSize((GLfloat)(state == 0 || state == 1) ? 15 : 10);
 	glDrawArrays(GL_POINTS, 0, massVec.size());
 
 	glBindVertexArray(0);
 }
-
 
 
 
@@ -250,7 +305,7 @@ int main()
 	glfwSetErrorCallback(errorCallback);
 
 	glfwWindowHint(GLFW_DOUBLEBUFFER, true);
-	glfwWindowHint(GLFW_SAMPLES, 16);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Physics Sim", NULL, NULL);
 
@@ -290,9 +345,10 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearBufferfv(GL_COLOR, 0, clearColor);
 
-		renderCeiling(planeProgram);
+		renderPlane(planeProgram);
 		renderSprings(springProgram);
-		renderMasses(massProgram);
+		if (state != 3)
+			renderMasses(massProgram);
 		
         glDisable(GL_DEPTH_TEST);
 		glfwSwapBuffers(window);
@@ -307,6 +363,8 @@ int main()
 			springVec.clear();
 			switch (state)
 			{
+				planeSize = 2.f;
+				planeHeight = 2.f;
 				case (0):
 					generateSingleSpringSystem();
 					planeHeight = abs(planeHeight);
@@ -317,6 +375,12 @@ int main()
 					break;
 				case(2):
 					generateCubeSpringSystem();
+					planeHeight = -abs(planeHeight);
+					break;
+				case(3):
+					planeSize = .25f;
+					planeHeight = .5f;
+					generateClothSpringSystem();
 					planeHeight = -abs(planeHeight);
 					break;
 				default:
@@ -330,7 +394,7 @@ int main()
 		{
 			// already moving at 60 steps/second
 			for (int i = 0; i < timeStep; i++)
-				springSystem(massVec, springVec, planeHeight);
+				springSystem(massVec, springVec, planeHeight, planeSize);
 		}
 	}
 

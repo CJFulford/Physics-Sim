@@ -14,14 +14,14 @@
 #define halfPI 0.5f * PI
 #define gravity 9.81f
 
-#define defaultZoom 3.f
+#define defaultZoom 2.f
 
 #define WINDOW_WIDTH 700
 #define WINDOW_HEIGHT 500
 
 // if timestep = 1, 60 steps/second
 // 20 = 1200 steps/second
-#define timeStep 20.f
+#define timeStep 10.f
 #define stepsPerSecond (timeStep * 60.f)
 const glm::mat4 identity(1.0f);
 
@@ -68,4 +68,4 @@ void window_size_callback(GLFWwindow* window, int width, int height);
 void mouse_motion(GLFWwindow* window, double x, double y);
 void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
-void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float planeHeight);
+void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float planeHeight, float planeSize);

@@ -17,7 +17,9 @@ float   rotate_x = 0.0,
 
 vec3	up(0.f, 1.f, 0.f),
 		cam(0.f, 0.f, 2.f),
-		center(0.f, 0.f, 0.f);
+		center(0.f, 0.f, 0.f),
+		yRotationalAxis(0.f, 1.f, 0.f),
+		xRotationalAxis(1.f, 0.f, 0.f);
 
 
 void passBasicUniforms(GLuint program)
@@ -27,8 +29,8 @@ void passBasicUniforms(GLuint program)
 		projection = perspective(45.0f, aspectRatio, 0.01f, 100.0f);
 	cam.z /= zoom;
 
-	mat4   rotationX = rotate(identity, rotate_x  * PI / 180.0f, vec3(1.f, 0.f, 0.f)),
-		rotationY = rotate(rotationX, rotate_y  * PI / 180.0f, vec3(0.f, 1.f, 0.f));
+	mat4   rotationX = rotate(identity, rotate_x  * PI / 180.0f, xRotationalAxis),
+		rotationY = rotate(rotationX, rotate_y  * PI / 180.0f, yRotationalAxis);
 
 	modelview *= rotationY;
 
@@ -61,13 +63,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		case (GLFW_KEY_1):
 			state = 0;
 			stateChange = true;
+			zoom = 2.f;
 			break;
 		case (GLFW_KEY_2):
 			state = 1;
 			stateChange = true;
+			zoom = 2.f;
 			break;
 		case (GLFW_KEY_3):
 			state = 2;
+			stateChange = true;
+			zoom = 2.f;
+			break;
+		case (GLFW_KEY_4):
+			state = 3;
+			zoom = .5f;
 			stateChange = true;
 			break;
 		
@@ -100,7 +110,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	if (yoffset < 0)
 		zoom += 0.1f;
 	else if (yoffset > 0)
-		zoom = max(zoom - 0.1f, 0.2f);
+		zoom = max(zoom - 0.1f, 0.005f);
 }
 
 void mouse_motion(GLFWwindow* window, double x, double y)

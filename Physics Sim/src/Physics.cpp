@@ -4,7 +4,7 @@
 
 using namespace glm;
 
-void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float planeHeight)
+void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float planeHeight, float planeSize)
 {
 	// apply spring force to all masses
 	#pragma omp parallel (dynamic)
@@ -32,18 +32,20 @@ void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float
 		if (!m->fixed)
 		{
 			m->force.y -= gravity * m->mass;
-
 			// dampen the force
 			m->force = (-dampening * m->velocity) + m->force;
-			
-			// convert to acceleration
-			m->force /= m->mass;
-
-			m->velocity += m->force * (1.f / stepsPerSecond);
+			// convert mass to accelleration and apply to velocity for change in time
+			m->velocity += m->force / m->mass * (1.f / stepsPerSecond);
 
 			// collision with the plane
+			// check collision height
 			if (abs(m->position.y - planeHeight) < 0.01f)
-				m->velocity.y = 0;
+				//check collision bounds
+				if (m->position.x < planeSize &&
+					m->position.x > -planeSize &&
+					m->position.z < planeSize &&
+					m->position.z > -planeSize)
+						m->velocity.y = 0;
 
 			m->position += m->velocity * (1.f / stepsPerSecond);
 			m->force = vec3(0.f, 0.f, 0.f);

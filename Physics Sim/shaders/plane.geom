@@ -6,8 +6,7 @@ layout(triangle_Strip, max_vertices = 6) out;
 uniform mat4 modelview;
 uniform mat4 projection;
 uniform float height;
-
-float planeSize = 2.f;
+uniform float planeSize;
 
 void main (void)
 {
