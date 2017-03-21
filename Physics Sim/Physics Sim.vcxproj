@@ -95,6 +95,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -161,10 +162,13 @@
     <ClInclude Include="src\Tools.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\general.frag" />
-    <None Include="shaders\general.vert" />
+    <None Include="shaders\masses.vert" />
+    <None Include="shaders\plane.frag" />
+    <None Include="shaders\plane.geom" />
+    <None Include="shaders\plane.vert" />
     <None Include="shaders\masses.frag" />
     <None Include="shaders\springs.frag" />
+    <None Include="shaders\springs.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

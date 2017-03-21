@@ -19,8 +19,6 @@
 #define WINDOW_WIDTH 700
 #define WINDOW_HEIGHT 500
 
-#define dampening 1.f	// this is good with a default mass of 1
-
 // if timestep = 1, 60 steps/second
 // 20 = 1200 steps/second
 #define timeStep 20.f
@@ -35,11 +33,15 @@ const glm::vec3 defaultUp(0.f, 1.f, 0.f),
 // 0 = single spring system
 // 1 = multi spring system
 extern int state;
-extern bool stateChange;
+extern bool stateChange, simulation;
 
 struct Mass 
 {
-	Mass() : position(glm::vec3(0.f, 0.f, 0.f)), velocity(glm::vec3(0.f, 0.f, 0.f)), mass(1.f), fixed(false), force(glm::vec3(0.f, 0.f, 0.f)) { }
+	Mass() :	position(glm::vec3(0.f, 0.f, 0.f)), 
+				velocity(glm::vec3(0.f, 0.f, 0.f)),
+				force(glm::vec3(0.f, 0.f, 0.f)),
+				mass(1.f), 
+				fixed(false) { }
 	glm::vec3 position;
 	glm::vec3 velocity;
 	glm::vec3 force;
@@ -49,7 +51,8 @@ struct Mass
 
 struct Spring
 {
-	Spring() :  restLength(.4f), constant(50.f){ }
+	Spring() :  restLength(.4f), 
+				constant(50.f) { }
 	unsigned int m1, m2;
 	float restLength;
 	float constant;
@@ -65,4 +68,4 @@ void window_size_callback(GLFWwindow* window, int width, int height);
 void mouse_motion(GLFWwindow* window, double x, double y);
 void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
-void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs);
+void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float planeHeight);

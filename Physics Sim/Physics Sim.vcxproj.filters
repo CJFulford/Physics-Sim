@@ -49,16 +49,25 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\general.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="shaders\general.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
     <None Include="shaders\masses.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="shaders\springs.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\plane.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\plane.geom">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\plane.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\masses.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\springs.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

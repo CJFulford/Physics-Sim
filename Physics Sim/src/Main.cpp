@@ -1,5 +1,6 @@
 #include "Header.h"
 #include "ShaderBuilder.h"
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <string>
 
@@ -8,42 +9,20 @@ using namespace glm;
 const GLfloat clearColor[] = { 0.f, 0.f, 0.f };
 
 int state = 0;
-bool stateChange = false;
+bool stateChange = false, simulation = true;
+float planeHeight = 3.f;
 
-GLuint	ceilingVertexArray, 
-		springVertexArray, 
+GLuint	springVertexArray, 
 		massVertexArray, 
 	
-		ceilingProgram, 
+		planeProgram,
 		springProgram, 
 		massProgram;
 
 std::vector<Mass> massVec;
 std::vector<Spring> springVec;
 
-void generateCeilingBuffer()
-{
-    GLuint ceilingVertexBuffer = 0;
-
-    glGenVertexArrays(1, &ceilingVertexArray);
-    glBindVertexArray(ceilingVertexArray);
-
-    std::vector<vec3> verts;
-
-    verts.push_back(vec3(-2.f, 3.f, -2.f));
-    verts.push_back(vec3(-2.f, 3.f, 2.f));
-    verts.push_back(vec3(2.f, 3.f, -2.f));
-    verts.push_back(vec3(2.f, 3.f, 2.f));
-
-    glGenBuffers(1, &ceilingVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, ceilingVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-}
-
+// buffer generation
 void generateMassBuffer()
 {
 
@@ -86,26 +65,28 @@ void generateSpringBuffer()
 	glEnableVertexAttribArray(0);
 }
 
+
+// system generation
 int userInput(std::string str)
 {
 	// get user input, restricted to integers
-	while (true);
+	do
 	{
 		std::cout << str;
 		std::string input;
 		std::cin >> input;
 		bool digit = true;
-		for (int i = 0; i < input.length(); i++)
+		for (unsigned int i = 0; i < input.length(); i++)
 		{
 			if (!isdigit(input[i]))
 			{
 				std::cout << "Need to enter an integer amount" << std::endl;
 				digit = false;
-				i = input.length();
+				break;
 			}
 		}
 		if (digit) return stoi(input);
-	}
+	} while (true);
 }
 
 void generateSingleSpringSystem()
@@ -145,7 +126,7 @@ void generateMultiSpringSystem()
 	{
 		Mass m;
 		m.position = massVec[i].position - glm::vec3(0.f, 0.7f, 0.f);
-		m.mass = 2.f * (i + 1);
+		m.mass = (i + 1) / 2.f;
 		massVec.push_back(m);
 
 		Spring s;
@@ -157,50 +138,77 @@ void generateMultiSpringSystem()
 
 void generateCubeSpringSystem()
 {
-	int numOfLayers = userInput("Enter number of cube layers: ");
-	float layerThickness = .2f, massDistance = .1f;
+	int numOfLayers = userInput("Enter number of cube layers: "),
+		top = numOfLayers / 2,
+		bottom = -top;
+	float massDistance = .2f;
 
-	// generate the number of desired masses
-	for (float layer = 0; layer < numOfLayers; layer += layerThickness)
+	// generate the network of masses
+	float x = bottom * massDistance;
+	for (float xLayer = 0; xLayer < numOfLayers; xLayer++)
 	{
-		for (int side = 0; side < 4; side++)
+		float y = bottom * massDistance;
+		for (int yLayer = 0; yLayer < numOfLayers; yLayer++)
 		{
-			for (float height = 0; height < layer; height += .1f)
+			float z = bottom * massDistance;
+			for (float zLayer = 0; zLayer < numOfLayers; zLayer++)
 			{
-				for (float width = 0; width < layer; width += .1f)
-				{
+				Mass m;
+				m.position = glm::vec3(x, y, z);
+				massVec.push_back(m);
+				z += massDistance;
+			}
+			y += massDistance;
+		}
+		x += massDistance;
+	}
 
-				}
+
+	// generate the spring network
+
+	int springLayers = 2;
+	float springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f));
+
+	for (int i = 0; i < massVec.size(); i++)
+	{
+		for (int j = i + 1; j < massVec.size(); j++)
+		{
+			float dist = distance(massVec[i].position, massVec[j].position);
+			if (dist < springDistance)
+			{
+				Spring s;
+				s.m1 = i;
+				s.m2 = j;
+				s.restLength = dist;
+				s.constant = 2000.f;
+				springVec.push_back(s);
 			}
 		}
 	}
 }
 
 
-
-
+// rendering
 void generateShaders()
 {
-	ceilingProgram = generateProgram(	"shaders/general.vert",
-										"shaders/general.frag");
-	springProgram = generateProgram(	"shaders/general.vert",
-										"shaders/springs.frag");
-	massProgram = generateProgram(		"shaders/general.vert",
-										"shaders/masses.frag");
+	planeProgram = generateProgram("shaders/plane.vert",
+									"shaders/plane.geom",
+									"shaders/plane.frag");
+	springProgram = generateProgram("shaders/springs.vert",
+									"shaders/springs.frag");
+	massProgram = generateProgram("shaders/masses.vert",
+									"shaders/masses.frag");
 }
-
-
 
 void renderCeiling(GLuint program)
 {
-    glBindVertexArray(ceilingVertexArray);
     glUseProgram(program);
 
     passBasicUniforms(program);
+	glUniform1f(glGetUniformLocation(program, "height"), planeHeight);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glBindVertexArray(0);
+    glDrawArrays(GL_POINTS, 0, 1);
 }
 
 void renderSprings(GLuint program)
@@ -223,7 +231,7 @@ void renderMasses(GLuint program)
 
 	passBasicUniforms(program);
 
-	glPointSize(15);
+	glPointSize((state == 0 || state == 1) ? 15 : 10);
 	glDrawArrays(GL_POINTS, 0, massVec.size());
 
 	glBindVertexArray(0);
@@ -265,31 +273,34 @@ int main()
 	printOpenGLVersion(GL_MAJOR_VERSION, GL_MINOR_VERSION, GL_SHADING_LANGUAGE_VERSION);
 
     generateShaders();
-    generateCeilingBuffer();
 
 	generateSingleSpringSystem();
 
-	generateMassBuffer();
-	generateSpringBuffer();
 
     glfwSwapInterval(1);
 
 	while (!glfwWindowShouldClose(window))
 	{
+		generateMassBuffer();
+		generateSpringBuffer();
+
+
+		// the rendering
         glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearBufferfv(GL_COLOR, 0, clearColor);
 
-
-        renderCeiling(ceilingProgram);
+		renderCeiling(planeProgram);
 		renderSprings(springProgram);
 		renderMasses(massProgram);
 		
-
         glDisable(GL_DEPTH_TEST);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
+
+
+		// if we request a new scene
 		if (stateChange)
 		{
 			massVec.clear();
@@ -298,9 +309,15 @@ int main()
 			{
 				case (0):
 					generateSingleSpringSystem();
+					planeHeight = abs(planeHeight);
 					break;
 				case(1):
 					generateMultiSpringSystem();
+					planeHeight = abs(planeHeight);
+					break;
+				case(2):
+					generateCubeSpringSystem();
+					planeHeight = -abs(planeHeight);
 					break;
 				default:
 					generateSingleSpringSystem();
@@ -308,16 +325,13 @@ int main()
 			}
 			stateChange = false;
 		}
-		else
+		// run physics sim unless paused
+		else if (simulation)
 		{
 			// already moving at 60 steps/second
 			for (int i = 0; i < timeStep; i++)
-				springSystem(massVec, springVec);
+				springSystem(massVec, springVec, planeHeight);
 		}
-
-
-		generateMassBuffer();
-		generateSpringBuffer();
 	}
 
 
