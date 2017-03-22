@@ -6,13 +6,20 @@
 
 using namespace glm;
 
+#define defaultPlaneSize	2.f
+#define defaultPlaneHeight	2.f
+#define clothPlaneSize		0.25f
+#define clothPlaneHeight	0.5f
+
+#define antiAliasing		4
+
 const GLfloat clearColor[] = { 0.f, 0.f, 0.f };
 
-int		state = 0;
+int		state = singleSpringState;
 bool	stateChange = false, 
 		simulation = true;
-float	planeHeight = 2.f,
-		planeSize = 2.f;
+float	planeHeight = defaultPlaneHeight,
+		planeSize = defaultPlaneSize;
 
 GLuint	springVertexArray, 
 		massVertexArray, 
@@ -140,10 +147,14 @@ void generateMultiSpringSystem()
 
 void generateCubeSpringSystem()
 {
-	int numOfLayers = userInput("Enter number of cube layers: "),
-		top = numOfLayers / 2,
-		bottom = -top;
-	float massDistance = .2f;
+	int		numOfLayers = userInput("Enter number of cube layers: "),
+			top = numOfLayers / 2,
+			bottom = -top,
+			springLayers = 1;
+	float	massDistance = .2f,
+			// equation of a sphere. all masses contained need to be connected to center mass
+			// + .01f for floating point error
+			springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f));
 
 	// generate the network of masses
 	float x = bottom * massDistance;
@@ -168,9 +179,6 @@ void generateCubeSpringSystem()
 
 	// generate the spring network
 
-	int springLayers = 2;
-	float springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f));
-
 	for (unsigned int i = 0; i < massVec.size(); i++)
 	{
 		for (unsigned int j = i + 1; j < massVec.size(); j++)
@@ -189,17 +197,18 @@ void generateCubeSpringSystem()
 	}
 }
 
-void generateClothSpringSystem()
+void generateClothHangSpringSystem()
 {
 	int numOfLayers = userInput("Enter diameter of cloth: "),
 		springLayers = 2,
 		top = numOfLayers / 2,
 		bottom = -top;
 	float	massDistance = .005f,
-			// equation of a sphere. all masses contained need to be connected to center mass
-			// + .01f for floating point error
-			springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f));
-			
+		massMass = .1f,
+		// equation of a sphere. all masses contained need to be connected to center mass
+		// + .01f for floating point error
+		springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f)),
+		springConstant = 2000.f;
 
 
 
@@ -208,12 +217,14 @@ void generateClothSpringSystem()
 	for (float xLayer = 0; xLayer < numOfLayers; xLayer++)
 	{
 		float	y = bottom * massDistance,
-				z = bottom * massDistance;
+			z = bottom * massDistance;
 		for (int yLayer = 0; yLayer < numOfLayers; yLayer++)
 		{
 			Mass m;
 			m.position = glm::vec3(x, y, z);
-			m.mass = .1f;
+			m.mass = massMass;
+			if (xLayer >= 5 && xLayer < 10 && yLayer >= 5 && yLayer < 10)
+				m.fixed = true;
 			massVec.push_back(m);
 
 			y += massDistance;
@@ -235,7 +246,62 @@ void generateClothSpringSystem()
 				s.m1 = i;
 				s.m2 = j;
 				s.restLength = dist;
-				s.constant = 2000.f;
+				s.constant = springConstant;
+				springVec.push_back(s);
+			}
+		}
+	}
+}
+
+void generateClothTableSpringSystem()
+{
+	int numOfLayers = userInput("Enter diameter of cloth: "),
+		springLayers = 2,
+		top = numOfLayers / 2,
+		bottom = -top;
+	float	massDistance = .005f,
+			massMass = .1f,
+		// equation of a sphere. all masses contained need to be connected to center mass
+		// + .01f for floating point error
+			springDistance = .01f + sqrt(3.f * pow(springLayers * massDistance, 2.f)),
+			springConstant = 2000.f;
+			
+
+
+
+	// generate the network of masses
+	float x = bottom * massDistance;
+	for (float xLayer = 0; xLayer < numOfLayers; xLayer++)
+	{
+		float	y = bottom * massDistance,
+				z = bottom * massDistance;
+		for (int yLayer = 0; yLayer < numOfLayers; yLayer++)
+		{
+			Mass m;
+			m.position = glm::vec3(x, y, z);
+			m.mass = massMass;
+			massVec.push_back(m);
+
+			y += massDistance;
+			z += massDistance;
+		}
+		x += massDistance;
+	}
+
+
+	// generate the spring network
+	for (unsigned int i = 0; i < massVec.size(); i++)
+	{
+		for (unsigned int j = i + 1; j < massVec.size(); j++)
+		{
+			float dist = distance(massVec[i].position, massVec[j].position);
+			if (dist < springDistance)
+			{
+				Spring s;
+				s.m1 = i;
+				s.m2 = j;
+				s.restLength = dist;
+				s.constant = springConstant;
 				springVec.push_back(s);
 			}
 		}
@@ -287,7 +353,7 @@ void renderMasses(GLuint program)
 
 	passBasicUniforms(program);
 
-	glPointSize((GLfloat)(state == 0 || state == 1) ? 15 : 10);
+	glPointSize(10);
 	glDrawArrays(GL_POINTS, 0, massVec.size());
 
 	glBindVertexArray(0);
@@ -300,12 +366,12 @@ int main()
 	if (!glfwInit())
 	{
 		std::cout << "Failed to initialize GLFW" << std::endl;
-		return -1;
+		exit(EXIT_FAILURE);
 	}
 	glfwSetErrorCallback(errorCallback);
 
 	glfwWindowHint(GLFW_DOUBLEBUFFER, true);
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, antiAliasing);
 
 	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Physics Sim", NULL, NULL);
 
@@ -347,7 +413,7 @@ int main()
 
 		renderPlane(planeProgram);
 		renderSprings(springProgram);
-		if (state != 3)
+		if (state <= boxSpringState)	// only render masses if the object is not a cloth
 			renderMasses(massProgram);
 		
         glDisable(GL_DEPTH_TEST);
@@ -361,26 +427,32 @@ int main()
 		{
 			massVec.clear();
 			springVec.clear();
+			planeHeight = defaultPlaneHeight;
+			planeHeight = defaultPlaneHeight;
 			switch (state)
 			{
-				planeSize = 2.f;
-				planeHeight = 2.f;
-				case (0):
+				case (singleSpringState):
 					generateSingleSpringSystem();
 					planeHeight = abs(planeHeight);
 					break;
-				case(1):
+				case(multiSpringState):
 					generateMultiSpringSystem();
 					planeHeight = abs(planeHeight);
 					break;
-				case(2):
+				case(boxSpringState):
 					generateCubeSpringSystem();
 					planeHeight = -abs(planeHeight);
 					break;
-				case(3):
-					planeSize = .25f;
-					planeHeight = .5f;
-					generateClothSpringSystem();
+				case(clothHangState):
+					planeSize = clothPlaneSize;
+					planeHeight = clothPlaneHeight;
+					generateClothHangSpringSystem();
+					planeHeight = -abs(planeHeight);
+					break;
+				case(clothTableState):
+					planeSize = clothPlaneSize;
+					planeHeight = clothPlaneHeight;
+					generateClothTableSpringSystem();
 					planeHeight = -abs(planeHeight);
 					break;
 				default:

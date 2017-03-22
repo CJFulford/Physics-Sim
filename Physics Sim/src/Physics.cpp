@@ -1,6 +1,7 @@
 #include "Header.h"
 #include <omp.h>
-#define dampening 1.f	// this is good with a default mass of 1
+#define dampening			1.f		// this is good with a default mass of 1
+#define collisionBuffer		.005f
 
 using namespace glm;
 
@@ -33,13 +34,13 @@ void springSystem(std::vector<Mass> &masses, std::vector<Spring> &springs, float
 		{
 			m->force.y -= gravity * m->mass;
 			// dampen the force
-			m->force = (-dampening * m->velocity) + m->force;
+			m->force += (-dampening * m->velocity);
 			// convert mass to accelleration and apply to velocity for change in time
 			m->velocity += m->force / m->mass * (1.f / stepsPerSecond);
 
 			// collision with the plane
 			// check collision height
-			if (abs(m->position.y - planeHeight) < 0.01f)
+			if (abs(m->position.y - planeHeight) < collisionBuffer)
 				//check collision bounds
 				if (m->position.x < planeSize &&
 					m->position.x > -planeSize &&

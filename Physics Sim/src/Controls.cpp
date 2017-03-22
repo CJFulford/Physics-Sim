@@ -3,7 +3,10 @@
 #include <glm\gtx\transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
-#define movement .25f
+#define movement 0.25f
+#define FOV		 45.f
+#define zNear	.01f
+#define zFar	10.f
 
 using namespace glm;
 
@@ -15,24 +18,20 @@ float   rotate_x = 0.0,
 		zoom = defaultZoom,
 		aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
 
-vec3	up(0.f, 1.f, 0.f),
-		cam(0.f, 0.f, 2.f),
-		center(0.f, 0.f, 0.f),
+vec3	camUp	= defaultCamUp,
+		camLoc	= defaultCamLoc,
+		camCent	= defaultCamCent,
 		yRotationalAxis(0.f, 1.f, 0.f),
 		xRotationalAxis(1.f, 0.f, 0.f);
 
 
 void passBasicUniforms(GLuint program)
 {
-	cam.z *= zoom;
-	mat4   modelview = lookAt(cam, center, up),
-		projection = perspective(45.0f, aspectRatio, 0.01f, 100.0f);
-	cam.z /= zoom;
+	mat4	modelview = lookAt(camLoc * zoom, camCent, camUp),
+			projection = perspective(FOV, aspectRatio, zNear, zFar);
 
-	mat4   rotationX = rotate(identity, rotate_x  * PI / 180.0f, xRotationalAxis),
-		rotationY = rotate(rotationX, rotate_y  * PI / 180.0f, yRotationalAxis);
-
-	modelview *= rotationY;
+	mat4	rotationX  = rotate(identity , rotate_x  * PI / 180.0f, xRotationalAxis);
+			modelview *= rotate(rotationX, rotate_y  * PI / 180.0f, yRotationalAxis);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelview"), 1, GL_FALSE, value_ptr(modelview));
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, value_ptr(projection));
@@ -61,43 +60,53 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 		// changing states
 		case (GLFW_KEY_1):
-			state = 0;
+			state = singleSpringState;
 			stateChange = true;
-			zoom = 2.f;
+			zoom = defaultZoom;
 			break;
 		case (GLFW_KEY_2):
-			state = 1;
+			state = multiSpringState;
 			stateChange = true;
-			zoom = 2.f;
+			zoom = defaultZoom;
 			break;
 		case (GLFW_KEY_3):
-			state = 2;
+			state = boxSpringState;
 			stateChange = true;
-			zoom = 2.f;
+			zoom = defaultZoom;
 			break;
 		case (GLFW_KEY_4):
-			state = 3;
-			zoom = .5f;
+			state = clothHangState;
 			stateChange = true;
+			zoom = defaultZoom;
 			break;
-		
+		case (GLFW_KEY_5):
+			state = clothTableState;
+			stateChange = true;
+			zoom = defaultZoom;
+			break;
+		case (GLFW_KEY_6):
+			state = clothWindState;
+			stateChange = true;
+			zoom = defaultZoom;
+			break;
+
 		
 		// camera movement
 		case (GLFW_KEY_W):
-			cam.y += movement;
-			center.y += movement;
+			camLoc.y += movement;
+			camCent.y += movement;
 			break;
 		case (GLFW_KEY_S):
-			cam.y -= movement;
-			center.y -= movement;
+			camLoc.y -= movement;
+			camCent.y -= movement;
 			break;
 		case (GLFW_KEY_A):
-			cam.x -= movement;
-			center.x -= movement;
+			camLoc.x -= movement;
+			camCent.x -= movement;
 			break;
 		case (GLFW_KEY_D):
-			cam.x += movement;
-			center.x += movement;
+			camLoc.x += movement;
+			camCent.x += movement;
 			break;
 		default:
 			break;
@@ -117,8 +126,8 @@ void mouse_motion(GLFWwindow* window, double x, double y)
 {
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
 	{
-		rotate_x += (float)((y - mouse_old_y) * 0.5f);
-		rotate_y += (float)((x - mouse_old_x) * 0.5f);
+		rotate_x += (float)((y - mouse_old_y));
+		rotate_y += (float)((x - mouse_old_x));
 	}
 	mouse_old_x = x;
 	mouse_old_y = y;
