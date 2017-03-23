@@ -8,7 +8,7 @@ using namespace glm;
 
 #define defaultPlaneSize	2.f
 #define defaultPlaneHeight	2.f
-#define clothPlaneSize		0.25f
+#define clothPlaneSize		0.1f
 #define clothPlaneHeight	0.5f
 
 #define antiAliasing		4
