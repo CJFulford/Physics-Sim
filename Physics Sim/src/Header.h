@@ -18,7 +18,6 @@
 #define boxSpringState		2
 #define clothHangState		3
 #define clothTableState		4
-#define clothWindState		5
 
 #define WINDOW_WIDTH		700
 #define WINDOW_HEIGHT		500

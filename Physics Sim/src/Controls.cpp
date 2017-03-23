@@ -84,11 +84,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			stateChange = true;
 			zoom = defaultZoom;
 			break;
-		case (GLFW_KEY_6):
-			state = clothWindState;
-			stateChange = true;
-			zoom = defaultZoom;
-			break;
 
 		
 		// camera movement
